@@ -4,14 +4,17 @@ import 'dotenv/config'
 import cookieParser from 'cookie-parser'
 import connectDB from './config/mongodb.js';
 import authRouter from './routes/authrouts.js'
+import userRouter from './routes/userRouter.js';
 
 const app=express();
 const port = process.env.PORT || 4000
 connectDB();
 
+const allwedOrigins =['http://localhost:5173']
+
 app.use(express.json())
 app.use(cookieParser())
-app.use(cors({credentials:true}))
+app.use(cors({origin:allwedOrigins, credentials:true}))
 
 
 // API Endpoints
@@ -19,6 +22,8 @@ app.get('/',(req,res)=>{
     res.send("API Working");
 })
 app.use('/api/auth',authRouter)
+
+app.use('/api/user',userRouter)
 
 app.listen(port,()=>console.log(`server started on PORT: ${port}`));
 

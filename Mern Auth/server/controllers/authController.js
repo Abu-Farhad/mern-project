@@ -65,7 +65,7 @@ export const logIn = async (req, res) => {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
             sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
-            maxAge: 7 * 24 * 3600
+            maxAge: 7 * 24 * 3600 * 1000
         })
         return res.json({ success: true })
     }
@@ -94,7 +94,7 @@ export const logOut = async (req, res) => {
 
 export const sendVerifyOtp = async (req, res) => {
     try {
-        const { userId } = req.body;
+        const  userId  = req.userId;
 
         const user = await userModel.findById(userId);
 
@@ -109,7 +109,7 @@ export const sendVerifyOtp = async (req, res) => {
         await user.save()
 
         const mailOptions = {
-            from: process.env.SWNDER_EMAIL,
+            from: process.env.SENDER_EMAIL,
             to: user.email,
             subject: 'Account Verification OTP',
             text: `Welcome to my project. Your verification otp is ${otp} this otp will be expired at ${new Date(user.verifyOtpExpireAt).toLocaleString()}`
@@ -126,8 +126,8 @@ export const sendVerifyOtp = async (req, res) => {
 }
 
 export const verifyEmail = async (req, res) => {
-    const { userId, otp } = req.body;
-
+    const { otp } = req.body;
+    const userId=req.userId;
     if (!userId || !otp) {
         return res.json({ success: false, message: "Missing Details" });
     }
@@ -162,9 +162,14 @@ export const verifyEmail = async (req, res) => {
 
 export const isAuthenticated = async (req, res) => {
     try {
-        res.json({ success: true, message: "This is authenticated" })
-    } catch (error) {
-        res.json({ success: false, message: error.message })
+        const token=req.cookies.token;
+        if(!token){
+            return res.json({success:false,message:"No token found"})
+        }
+        const decode=jwt.verify(token,process.env.JWT_SECRET)
+        return res.json({success:true,message:"Authenticated",userId:decode.id})
+    } catch (err) {
+        
     }
 }
 
